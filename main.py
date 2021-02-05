@@ -1,6 +1,10 @@
 import discord
 import random
 import json
+import requests
+from bs4 import BeautifulSoup
+
+FACT_URL = 'https://www.schneierfacts.com/'
 
 from decouple import config
 
@@ -21,7 +25,7 @@ class Client(discord.Client):
     async def on_message(self, message):
         if message.author == self.user:
             return
-        
+
         if message.content.startswith('$losuj') or message.content.startswith('$pseudolosuj'):
             notChosen = {
                 key: self.data[key]
@@ -37,6 +41,13 @@ class Client(discord.Client):
 
             print('{} - {}'.format(chosen[0], chosen[1]))
             await message.channel.send('{} - {}'.format(chosen[0], chosen[1]))
+        elif message.content.startswith('$fact'):
+            raw_fact = BeautifulSoup(requests.get(FACT_URL).content, 'html.parser')
+            fact = raw_fact.find_all('p', class_='fact')[0].text
+
+            await message.channel.send(embed = discord.Embed(title=fact, description='Via schneierfacts.com', color=0x12aa30));
+
+
 
 client = Client()
 client.run(config('BOT_TOKEN'))
